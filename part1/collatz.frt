@@ -9,10 +9,10 @@
 			else
 				dup parity if
 					dup 2 / 
-0
+					0
 				else
 					dup 3 * 1 + 
-0
+					0
 				then
 			then
 		until
