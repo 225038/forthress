@@ -1,10 +1,3 @@
-# ------------------------------------------------
-# Forthress, a Forth dialect 
-#
-# Author: igorjirkov@gmail.com
-# Date  : 02-04-2018
-#
-# ------------------------------------------------
 
 ASM			= nasm
 ASMFLAGS	= -felf64 -g -Isrc/ 
