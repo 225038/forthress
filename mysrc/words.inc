@@ -98,6 +98,66 @@ native "/", div
   push rax
   jmp next
 
+native "%", div_
+  pop rax
+  pop r8
+  mov rdx, 0
+  idiv r8
+  push rdx
+  jmp next
+
+; logic block
+native "=", equals 
+	pop rax
+	pop rcx
+	cmp rax, rcx
+	sete al
+	movzx rax, al
+	push rax
+	jmp next
+
+native "<", less 
+	pop rax
+	pop rcx
+	cmp rcx, rax
+	setl al
+	movzx rax, al
+	push rax
+	jmp next
+
+native "and", and
+    pop rax
+    and [rsp], rax
+    jmp next
+
+native "or", or
+    pop rax
+    or [rsp], rax
+    jmp next
+
+native "land", land
+    pop rax
+    pop rdx
+    test rax, rax
+    jz .no
+    push rdx
+    jmp next
+.no:
+    push rax
+    jmp next
+
+native "lor", lor
+    pop rax
+    pop rdx
+    test rax, rax
+    jnz .yes
+    push rdx
+    jmp next
+.yes:
+    push rax
+    jmp next
+
+
 ; utils block
 native "find", find
   pop rdi
@@ -203,7 +263,7 @@ colon ";", semicolon, is_immediate
   dq xt_lit, xt_exit, xt_comma
   dq xt_exit
 
-; consts
+; constants
 const inbuf, current_word
 const mem, user_memory
 const state, state
