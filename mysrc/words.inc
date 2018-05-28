@@ -47,15 +47,17 @@ native 'drop', drop
 
 
 
+
+
 ; rstak manipulations block
 native "r>", push_r
-  pop rax
-  rpush rax
-  jmp next
-
-native ">r", pop_rs
   rpop rax
   push rax
+  jmp next
+
+native ">r", pop_r
+  pop rax
+  rpush rax
   jmp next
 
 native "r@", copy_rs
@@ -148,6 +150,46 @@ native "lor", lor
 .yes:
     push rax
     jmp next
+
+; IO
+
+native "key", key
+	call read_char
+	push rax
+	jmp next
+
+native "emit", emit
+  	pop rdi
+  	call print_char
+  	jmp next
+
+native "number", number		
+	call read_word
+	mov rax, rdi
+	call parse_int
+	push rax
+	jmp next
+
+
+native "word", word
+  	pop rdi
+  	call read_word
+  	push rdx
+  	jmp next
+
+native "count", count
+	pop rdi
+	call string_length
+	push rax
+	jmp next
+
+native "prints", prints
+	pop rdi
+	call print_string
+	jmp next
+
+
+
 
 
 ; utils block
