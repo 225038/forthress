@@ -8,7 +8,7 @@ global last_word
 %define pc r14
 %define rstack r13
 
-%define word_size 8
+
 %define is_immediate 1
 %define is_branch 2
 
@@ -21,10 +21,9 @@ current_word: times 256 db 0, 0
 stack_head: dq 0
 p_cmp_flag: dq 0
 state: dq 0
-here: dq user_dict
-last_word: dq _lw
 
 section .rodata
+underflow:		db 'Stack underflow',10, 0
 undefined:          db 'No such word',10, 0
 
 section .bss
@@ -40,7 +39,7 @@ section .text
 section .text
 next:
   mov w, pc
-  add pc, word_size
+  add pc, 8
   mov w, [w]
   jmp [w]
 
@@ -82,10 +81,11 @@ interpreter_loop:
   jmp interpreter_loop
 
   .not_found:
-  mov rdi, undefined
+  mov rdi, undefined	
   call print_string
 
   jmp interpreter_loop
+
 
 
  .compile:
@@ -100,7 +100,7 @@ interpreter_loop:
   je .interpret_word
   mov rdx, [here]
 	mov [rdx], rax
-  add qword [here], word_size
+  add qword [here], 8
   jmp interpreter_loop
 
   .not_word_compile:
@@ -114,17 +114,19 @@ interpreter_loop:
   mov rcx, xt_lit
   mov rdx, [here]
   mov qword[rdx], rcx
-  add qword[here], word_size
+  add qword[here], 8
   mov rdx, [here]
   mov [rdx], rax
-  add qword[here], word_size
+  add qword[here], 8
   jmp interpreter_loop
 
   .branch:
   mov rdx, [here]
   mov [rdx], rax
-  add qword [here], word_size
+  add qword [here], 8
+
   jmp interpreter_loop
+
 
   .exit:
   xor rdi, rdi
@@ -135,4 +137,8 @@ _start:
   mov [stack_head], rsp
   mov pc, xt_interpreter
   jmp next
+
+section .data
+here: dq user_dict
+last_word: dq _lw
 

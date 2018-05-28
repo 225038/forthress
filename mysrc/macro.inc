@@ -3,7 +3,6 @@
 %macro native 3
     section .data
     wh_ %+ %2 : dq _lw
-    db 0  ; to mark the name start
     db %1, 0
     db %3
 
@@ -21,7 +20,6 @@ native %1, %2, 0
 section .data
     wh_ %+ %2 : dq _lw
     %define _lw wh_ %+ %2
-    db 0
     str_ %+ %2:
     db %1, 0
     db %3
@@ -47,7 +45,8 @@ colon %1, %2, 0
 %macro const 2
 %defstr %%__cnst_str %1
 native %%__cnst_str, %1
-    push qword %2
+    mov rax, %2
+    push rax
     jmp next
 %endmacro
 
@@ -61,4 +60,5 @@ dq %1
 dq xt_branch0
 dq %1
 %endmacro
+
 

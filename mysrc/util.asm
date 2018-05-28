@@ -208,6 +208,7 @@ string_copy:
     test dl, dl
     jnz string_copy
     ret
+
 find_word:
   mov r8, last_word
 
@@ -215,11 +216,13 @@ find_word:
   test r8, r8
   jz .not_found
 
-  lea rsi, [r8 + 9]
+  lea rsi, [r8 + 8]
 
+  push rdi
   push rsi
   call string_equals
   pop rsi
+  pop rdi
 
   test rax, rax
   jnz .found
@@ -237,14 +240,16 @@ find_word:
   ret
 
 cfa:
-  add rdi, 9
+  add rdi, 8
 
   call string_length
-  
+
   add rax, rdi
   add rax, 2
 
   ret
+
+
 
 exit:
 xor rdi, rdi

@@ -1,31 +1,96 @@
+; Stack manipulation block
+;Show full stack
+native '.S', show_stack		
+	mov rax, rsp
+	.loop:
+		cmp rax, [stack_head]
+		jge next		
+		mov rdi, [rax]
+		push rax
+		call print_int
+		call print_newline
+		pop rax
+		add rax, 8
+		jmp .loop
+
+; Show top of stack
+native '.', dot			
+	cmp rsp, [stack_head]
+	jge error_underflow
+	pop rdi
+	call print_int
+	jmp next
 
 
-const inbuf, current_word
-const mem, user_memory
-const last_word, last_word
-const state, state
-const here, [here]
 
+; (ab - ba)
+native "swap", swap
+  pop rax
+  pop rcx
+  push rax
+  push rcx
+  jmp next
 
+; (a - aa)
+native "dup", dup
+	pop rax 
+	push rax 
+	push rax 
+	jmp next 
+
+; drop top of stack
+native 'drop', drop		
+	cmp rsp, [stack_head]
+	jge error_underflow
+	pop rax
+	jmp next
+
+; (abc - bca)
+native "rot", rot
+ 	pop rcx ; 3
+	pop rdx ; 2
+	pop rax ; 1
+	push rdx ; 2
+	push rcx ; 3
+	push rax ; 1
+	jmp next
+
+; rstak manipulations block
+native "r>", push_r
+  pop rax
+  rpush rax
+  jmp next
+
+native ">r", pop_rs
+  rpop rax
+  push rax
+  jmp next
+
+native "r@", copy_rs
+    mov rax, [rstack]
+    push rax
+    jmp next
+
+; arifmetics block
 
 native "+", plus
   pop rax
   add [rsp], rax
   jmp next
 
-native "-", minus
+native "-", min
   pop rax
   sub [rsp], rax
   jmp next
 
-native "*", multiply
+native "*", mult
   pop rax
-  pop r8
+  pop rdx
   imul rax, r8
   push rax
   jmp next
 
-native "/", divide
+native "/", div
   pop rax
   pop r8
   mov rdx, 0
@@ -33,8 +98,38 @@ native "/", divide
   push rax
   jmp next
 
+; utils block
+native "find", find
+  pop rdi
+  call find_word
+  push rax
+  jmp next
+native "cfa", cfa_
+  pop rdi
+  call cfa
+  push rax
+  jmp next
+native "syscall", syscall
+  pop r9
+  pop r8
+  pop r10
+  pop rdx
+  pop rsi
+  pop rdi
+  pop rax
+  syscall
+  push rax
+  push rdx
+  jmp next
 
-; COLON
+error_underflow:
+	mov rdi, underflow
+	call print_string
+	jmp next
+
+
+
+; colon words block
 
 native "docol", docol
   rpush pc
@@ -91,7 +186,6 @@ native "create", create
   pop rax
   mov [rsi], al
   inc rsi
-
   mov [here], rsi
   jmp next
 
@@ -108,4 +202,13 @@ colon ";", semicolon, is_immediate
   dq xt_lit, 0, xt_state, xt_put_int
   dq xt_lit, xt_exit, xt_comma
   dq xt_exit
+
+; consts
+const inbuf, current_word
+const mem, user_memory
+const state, state
+const here, [here]
+const last_word, last_word
+
+
 
