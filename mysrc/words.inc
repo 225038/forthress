@@ -50,20 +50,24 @@ native "drop", drop
 
 
 ; rstak manipulations block
+; Push from return stack into data stack
 native "r>", push_r
   rpop rax
   push rax
   jmp next
 
+; Pop from data stack into return stack
 native ">r", pop_r
   pop rax
   rpush rax
   jmp next
 
+; Non-destructive copy from the top of return stack to the top of data stack
 native "r@", copy_rs
     mov rax, [rstack]
     push rax
     jmp next
+
 
 ; arifmetics block
 
@@ -92,15 +96,9 @@ native "/", div
   push rax
   jmp next
 
-native "%", div_
-  pop rax
-  pop r8
-  mov rdx, 0
-  idiv r8
-  push rdx
-  jmp next
 
 ; logic block
+; if (a=b) put 1 else put 0
 native "=", equals 
 	pop rax
 	pop rcx
@@ -109,7 +107,7 @@ native "=", equals
 	movzx rax, al
 	push rax
 	jmp next
-
+; if (a<b) put 1 else put 0
 native "<", less 
 	pop rax
 	pop rcx
@@ -128,7 +126,7 @@ native "or", or
     pop rax
     or [rsp], rax
     jmp next
-
+; logic and
 native "land", land
     pop rax
     pop rdx
@@ -139,7 +137,7 @@ native "land", land
 .no:
     push rax
     jmp next
-
+; logic or
 native "lor", lor
     pop rax
     pop rdx
@@ -153,16 +151,14 @@ native "lor", lor
 
 ; IO
 
-native "key", key
-	call read_char
-	push rax
-	jmp next
 
+;( c -- ) Outputs a single character to stdout
 native "emit", emit
   	pop rdi
   	call print_char
   	jmp next
 
+;( str -- len num ) Parses an integer from string
 native "number", number		
 	call read_word
 	mov rax, rdi
@@ -170,24 +166,63 @@ native "number", number
 	push rax
 	jmp next
 
-
+; ( addr -- len ) Reads word from stdin and stores it starting at address addr. 
 native "word", word
   	pop rdi
   	call read_word
   	push rdx
   	jmp next
 
+; (str -- len ) Accepts a null-terminated string, calculates its length.
 native "count", count
 	pop rdi
 	call string_length
 	push rax
 	jmp next
 
+;( addr -- ) Prints a null-terminated string.
 native "prints", prints
 	pop rdi
 	call print_string
 	jmp next
 
+; ( str cnt -- ) Prints a certain amount of characters from string.
+native "printc", printc
+	mov rax, 1
+	mov rdi, 1
+	pop rsi
+	pop rdx
+	syscall
+	jmp next
+
+
+; Memory manipulation block
+
+native "!", put_int
+  	pop rax
+	pop rdx
+	mov [rax], rdx
+	jmp next
+
+
+native "c!", put_char
+  	pop rax
+  	pop rdx
+  	mov [rax], dl
+  	jmp next
+
+native "@", get_int
+  	pop rax
+	mov rax, [rax]
+	push rax
+	jmp next
+
+
+native "c@", get_char
+  	pop rax
+  	movzx rax, byte [rax]
+  	push rax
+  	jmp next
 
 
 
@@ -262,7 +297,7 @@ native ",", comma
   jmp next
 
 native "create", create
-  ; link
+  
   mov rdx, [last_word]
   mov rsi, [here]
   mov [rsi], rdx
@@ -270,7 +305,7 @@ native "create", create
   add rsi, 8
   mov byte [rsi], 0
 
-  ; name
+
   pop rdi
   push rsi
   call string_copy
@@ -279,7 +314,6 @@ native "create", create
   pop rsi
   add rsi, rax
 
-  ; flags
   inc rsi
   pop rax
   mov [rsi], al
@@ -288,37 +322,17 @@ native "create", create
   jmp next
 
 colon ":", colon
-  .repeat:
-  dq xt_inbuf, xt_word
-  branch0 .repeat
-  dq xt_lit, 0, xt_inbuf, xt_create
-  dq xt_lit, 1, xt_state, xt_put_int
-  dq xt_lit, i_docol, xt_comma
-  dq xt_exit
-
-colon ";", semicolon, is_immediate
-  dq xt_lit, 0, xt_state, xt_put_int
-  dq xt_lit, xt_exit, xt_comma
-  dq xt_exit
-
-colon "'", tick, 1
-	dq xt_inbuf
-	dq xt_word
-	dq xt_drop
-	dq xt_inbuf
-	dq xt_find, xt_dup
-    branch0 .no_such_word
-	dq xt_cfa
-    dq xt_state, xt_fetch
-    branch0 .interpret
-    dq xt_lit, xt_lit
-    dq xt_comma
-    dq xt_comma
-.interpret:
+.restart:
+    dq xt_inbuf, xt_word
+    branch0 .restart
+    dq xt_lit, 0, xt_inbuf, xt_create
+    dq xt_lit, 1, xt_state, xt_put_int
+    dq xt_lit, i_docol, xt_comma
     dq xt_exit
-    .no_such_word:
-    dq xt_inbuf, xt_prints
-    dq xt_lit, msg_no_such_word, xt_prints
+
+colon ";", semicolon, 1
+    dq xt_lit, 0, xt_state, xt_put_int
+    dq xt_lit, xt_exit, xt_comma
     dq xt_exit
 
 ; constants
