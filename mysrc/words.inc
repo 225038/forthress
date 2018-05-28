@@ -45,15 +45,7 @@ native 'drop', drop
 	pop rax
 	jmp next
 
-; (abc - bca)
-native "rot", rot
- 	pop rcx ; 3
-	pop rdx ; 2
-	pop rax ; 1
-	push rdx ; 2
-	push rcx ; 3
-	push rax ; 1
-	jmp next
+
 
 ; rstak manipulations block
 native "r>", push_r
