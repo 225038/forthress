@@ -1,6 +1,6 @@
 ; Stack manipulation block
 ;Show full stack
-native '.S', show_stack		
+native ".S", show_stack		
 	mov rax, rsp
 	.loop:
 		cmp rax, [stack_head]
@@ -14,7 +14,7 @@ native '.S', show_stack
 		jmp .loop
 
 ; Show top of stack
-native '.', dot			
+native ".", dot			
 	cmp rsp, [stack_head]
 	jge error_underflow
 	pop rdi
@@ -39,7 +39,7 @@ native "dup", dup
 	jmp next 
 
 ; drop top of stack
-native 'drop', drop		
+native "drop", drop		
 	cmp rsp, [stack_head]
 	jge error_underflow
 	pop rax
@@ -216,6 +216,10 @@ native "syscall", syscall
   push rdx
   jmp next
 
+native "bye", bye
+  mov rax, 60
+  syscall
+
 error_underflow:
 	mov rdi, underflow
 	call print_string
@@ -296,6 +300,26 @@ colon ";", semicolon, is_immediate
   dq xt_lit, 0, xt_state, xt_put_int
   dq xt_lit, xt_exit, xt_comma
   dq xt_exit
+
+colon "'", tick, 1
+	dq xt_inbuf
+	dq xt_word
+	dq xt_drop
+	dq xt_inbuf
+	dq xt_find, xt_dup
+    branch0 .no_such_word
+	dq xt_cfa
+    dq xt_state, xt_fetch
+    branch0 .interpret
+    dq xt_lit, xt_lit
+    dq xt_comma
+    dq xt_comma
+.interpret:
+    dq xt_exit
+    .no_such_word:
+    dq xt_inbuf, xt_prints
+    dq xt_lit, msg_no_such_word, xt_prints
+    dq xt_exit
 
 ; constants
 const inbuf, current_word
