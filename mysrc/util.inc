@@ -14,4 +14,8 @@ extern read_char
 extern read_word
 extern string_copy
 extern in_fd
+extern find_word
+extern print_error
+extern cfa
+extern exit
 %endif

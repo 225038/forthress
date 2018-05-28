@@ -1,34 +1,8 @@
-section .data
-    stack_head: dq 0
-
-; stack manipulations block
-native "drop", drop
-    add rsp, 8
-    jmp next
-
-native "swap", swap
-    pop rax
-    pop rdx
-    push rax
-    push rdx
-    jmp next
-
-native "dup", dup
-    pop rax
-    push rax 
-    push rax
-    jmp next
-    
-native ".", dot
-    pop rdi
-    call print_int
-    jmp next
-    
-native '.S', show_stack ; Show full stack
+native '.S', show_stack		
 	mov rax, rsp
 	.loop:
 		cmp rax, [stack_head]
-		jge next ;
+		jge next	
 		mov rdi, [rax]
 		push rax
 		call print_int
@@ -37,4 +11,21 @@ native '.S', show_stack ; Show full stack
 		add rax, 8
 		jmp .loop
 
+
+native "+", plus
+  pop rax
+  add [rsp], rax
+  jmp next
+
+native "-", minus
+  pop rax
+  sub [rsp], rax
+  jmp next
+
+native "*", multiply
+  pop rax
+  pop r8
+  imul rax, r8
+  push rax
+  jmp next
 

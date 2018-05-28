@@ -11,6 +11,12 @@ global read_char
 global read_word
 global string_copy
 global in_fd
+global find_word
+global cfa
+global print_error
+global exit
+
+extern last_word
 
 section .data
 in_fd: dq 0
@@ -142,6 +148,7 @@ read_char:
     pop rax
     ret 
 
+
 section .text
 
 read_word:
@@ -201,3 +208,45 @@ string_copy:
     test dl, dl
     jnz string_copy
     ret
+find_word:
+  mov r8, last_word
+
+  .loop:
+  test r8, r8
+  jz .not_found
+
+  lea rsi, [r8 + 9]
+
+  push rsi
+  call string_equals
+  pop rsi
+
+  test rax, rax
+  jnz .found
+
+  mov r8, [r8]
+
+  jmp .loop
+
+  .found:
+  mov rax, r8
+  ret
+
+  .not_found:
+  xor rax, rax
+  ret
+
+cfa:
+  add rdi, 9
+
+  call string_length
+  
+  add rax, rdi
+  add rax, 2
+
+  ret
+
+exit:
+xor rdi, rdi
+mov rax, 60
+syscall
